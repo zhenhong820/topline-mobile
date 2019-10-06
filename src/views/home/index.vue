@@ -14,10 +14,16 @@
       </van-tab>
 
       <!-- 图标 -->
-      <div class="my-right-tab" slot="nav-right">
+      <div class="my-right-tab" slot="nav-right" @click="channelShow=true">
         <van-icon name="wap-nav" />
       </div>
     </van-tabs>
+
+    <!--  <channel :show="channelShow" @change-show="channelShow =  $event"></channel>-->
+
+    <!-- <channel v-model="channelShow" :myList="channelList" :active="tabActive" @change-active="tabActive = $event"></channel> -->
+
+    <channel v-model="channelShow" :myList="channelList" :active.sync="tabActive"></channel>
   </div>
 </template>
 
@@ -26,11 +32,18 @@
 import { getChannel } from "@/api/channel.js";
 //导入获取列表请求
 import { getArticlesByTime } from "@/api/articles.js";
+//导入编辑页面组件
+import channel from "./channel.vue";
 
 export default {
   name: "home",
+  components: {
+    channel
+  },
   data() {
     return {
+      channelShow: false,
+      //刷新下拉
       pullLoading: false,
       //跟 tabs 绑定的下标
       tabActive: 0,
@@ -50,21 +63,22 @@ export default {
       //点击后 去加载频道下面的新闻，然后渲染到列表
       let res = await this.loadArticle();
       // console.log(res);
+      //频道变了重新赋值
       this.articlList = res.data.data.results;
     },
 
-    //封装加载文章数据的方法 
+    //封装加载文章数据的方法
     async loadArticle() {
       //以当前时间发请求
-      //获取列表的id 
+      //获取列表的id
       let channel_id = this.channelList[this.tabActive].id;
       let timestamp = Date.now();
       let with_top = 1;
 
       let res = await getArticlesByTime({ channel_id, timestamp, with_top });
       //内容的长度为0 就不加载list内容
-      if(res.data.data.results.length == 0){
-        this.finished
+      if (res.data.data.results.length == 0) {
+        this.finished;
       }
       //返回出去
       return res;
@@ -95,7 +109,7 @@ export default {
   },
 
   async created() {
-    //一进来就发请求 获取列表数据
+    //一进来就发请求 获取用户自己频道
     let res = await getChannel();
     // console.log(res);
     this.channelList = res.data.data.channels;
